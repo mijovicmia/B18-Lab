@@ -1,0 +1,54 @@
+%% Loading Data
+Open = load('C:\Users\miami\Desktop\Oxford\Matlab\B18 lab\DATA\B18_EEG_data\EEGeyesopen.mat');
+open = Open.eyesopen;
+Closed = load('C:\Users\miami\Desktop\Oxford\Matlab\B18 lab\DATA\B18_EEG_data\EEGeyesclosed.mat');
+closed = Closed.eyesclosed;
+%% Plot samples
+fs = 256; %Sampling freq (Hz)
+samples = 1:512;
+time = samples./fs;
+
+figure;
+plot(time, closed(samples))
+xlabel('Time (s)')
+ylabel('Amplitude (micro V)')
+title('EEG with Eyes Closed')
+
+figure(2);
+plot(time, open(samples))
+xlabel('Time (s)')
+ylabel('Amplitude (micro V)')
+title('EEG with Eyes Open')
+
+%% Pre-processing
+%% Detrending and normalising
+open = normalize(open-mean(open));
+closed = normalize(closed - mean(closed));
+
+%% Filtering
+fc = 70; % cut−off frequency (Hz)
+norder = 4; %filter order
+%The cut-off frequency Wn must be 0.0<Wn<1.0;
+Wn = fc/fs;
+%Design the filter
+[B,A] = butter(norder, Wn);
+%Apply the LPF
+open_f = filter(B,A,open);
+closed_f = filter(B,A,closed);
+
+%% Plot
+figure(3)
+plot(time, closed_f(samples))
+xlabel('Time (s)')
+ylabel('Amplitude (micro V)')
+title(['Pre-processed EEG with Eyes Closed, fc=', num2str(fc), 'Hz'])
+
+figure(4);
+plot(time, open_f(samples))
+xlabel('Time (s)')
+ylabel('Amplitude (micro V)')
+title(['Pre-processed EEG with Eyes Open, fc=', num2str(fc), 'Hz'])
+
+%% PSD
+window = hamming(length(open_f));
+[pxxO, fO] = periodogram(open_f, window, [], fs, '
